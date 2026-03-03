@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)https://apps.usw2.pure.cloud/messenger/messenger.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style data-emotion="cx-messenger" data-s=""></style>  <meta name="viewport" content="width=device-width,initial-scale=1" http-equiv="X-UA-Compatible"> <script>function loadMessenger(){["messagingMiddleware.min.js","defaultVendors.min.js","vendors.min.js","main.min.js","engage.min.js","broadcast.min.js"].forEach((function(n,e){var s=document.createElement("script");s.src=n,document.head.appendChild(s)}))}</script> <script id="genesys-cxbus" childmode="true" onload="loadMessenger()" name="LauncherFrame" src="./cxbus.min.js.download"></script> <script>var modernBrowser="Promise"in window,ua=window.navigator.userAgent,bIEBrowser=/MSIE/.test(ua)||/Edge/.test(ua)||/Trident\/7\./.test(ua);if(!modernBrowser||bIEBrowser){var scriptElement=document.createElement("script");scriptElement.async=!1,scriptElement.src="polyfills.min.js",document.head.appendChild(scriptElement)}var cxbusElement=document.getElementById("genesys-cxbus");document.location.origin&&"string"==typeof document.location.origin?cxbusElement.src=document.location.origin+"/cxbus/cxbus.min.js":cxbusElement.src="https://apps.inindca.com/cxbus/cxbus.min.js"</script> <style>.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: #0000ff;
+  --rdp-background-color: #e7edff;
+  --rdp-accent-color-dark: #3003e1;
+  --rdp-background-color-dark: #180270;
+  --rdp-outline: 2px solid var(--rdp-accent-color); /* Outline border for focused elements */
+  --rdp-outline-selected: 2px solid rgba(0, 0, 0, 0.75); /* Outline border for focused _and_ selected elements */
+
+  margin: 1em;
+}
+
+/* Hide elements for devices that are not screen readers */
+.rdp-vhidden {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute !important;
+  top: 0;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(1px, 1px, 1px, 1px) !important;
+  border: 0 !important;
+}
+
+/* Buttons */
+.rdp-button_reset {
+  appearance: none;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  color: inherit;
+  outline: none;
+  background: none;
+  font: inherit;
+
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
+.rdp-button {
+  border: 2px solid transparent;
+}
+
+.rdp-button[disabled] {
+  opacity: 0.25;
+}
+
+.rdp-button:not([disabled]) {
+  cursor: pointer;
+}
+
+.rdp-button:focus:not([disabled]),
+.rdp-button:active:not([disabled]) {
+  color: inherit;
+  border: var(--rdp-outline);
+  background-color: var(--rdp-background-color);
+}
+
+.rdp-button:hover:not([disabled]) {
+  background-color: var(--rdp-background-color);
+}
+
+.rdp-months {
+  display: flex;
+}
+
+.rdp-month {
+  margin: 0 1em;
+}
+
+.rdp-month:first-child {
+  margin-left: 0;
+}
+
+.rdp-month:last-child {
+  margin-right: 0;
+}
+
+.rdp-table {
+  margin: 0;
+  max-width: calc(var(--rdp-cell-size) * 7);
+  border-collapse: collapse;
+}
+
+.rdp-with_weeknumber .rdp-table {
+  max-width: calc(var(--rdp-cell-size) * 8);
+  border-collapse: collapse;
+}
+
+.rdp-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  text-align: left;
+}
+
+.rdp-multiple_months .rdp-caption {
+  position: relative;
+  display: block;
+  text-align: center;
+}
+
+.rdp-caption_dropdowns {
+  position: relative;
+  display: inline-flex;
+}
+
+.rdp-caption_label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0.25em;
+  white-space: nowrap;
+  color: currentColor;
+  border: 0;
+  border: 2px solid transparent;
+  font-family: inherit;
+  font-size: 140%;
+  font-weight: bold;
+}
+
+.rdp-nav {
+  white-space: nowrap;
+}
+
+.rdp-multiple_months .rdp-caption_start .rdp-nav {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.rdp-multiple_months .rdp-caption_end .rdp-nav {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.rdp-nav_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  padding: 0.25em;
+  border-radius: 100%;
+}
+
+/* ---------- */
+/* Dropdowns  */
+/* ---------- */
+
+.rdp-dropdown_year,
+.rdp-dropdown_month {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rdp-dropdown {
+  appearance: none;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: inherit;
+  opacity: 0;
+  border: none;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.rdp-dropdown[disabled] {
+  opacity: unset;
+  color: unset;
+}
+
+.rdp-dropdown:focus:not([disabled]) + .rdp-caption_label,
+.rdp-dropdown:active:not([disabled]) + .rdp-caption_label {
+  border: var(--rdp-outline);
+  border-radius: 6px;
+  background-color: var(--rdp-background-color);
+}
+
+.rdp-dropdown_icon {
+  margin: 0 0 0 5px;
+}
+
+.rdp-head {
+  border: 0;
+}
+
+.rdp-head_row,
+.rdp-row {
+  height: 100%;
+}
+
+.rdp-head_cell {
+  vertical-align: middle;
+  text-transform: uppercase;
+  font-size: 0.75em;
+  font-weight: 700;
+  text-align: center;
+  height: 100%;
+  height: var(--rdp-cell-size);
+  padding: 0;
+}
+
+.rdp-tbody {
+  border: 0;
+}
+
+.rdp-tfoot {
+  margin: 0.5em;
+}
+
+.rdp-cell {
+  width: var(--rdp-cell-size);
+  height: 100%;
+  height: var(--rdp-cell-size);
+  padding: 0;
+  text-align: center;
+}
+
+.rdp-weeknumber {
+  font-size: 0.75em;
+}
+
+.rdp-weeknumber,
+.rdp-day {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--rdp-cell-size);
+  max-width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  margin: 0;
+  border: 2px solid transparent;
+  border-radius: 100%;
+}
+
+.rdp-day_today:not(.rdp-day_outside) {
+  font-weight: bold;
+}
+
+.rdp-day_selected:not([disabled]),
+.rdp-day_selected:focus:not([disabled]),
+.rdp-day_selected:active:not([disabled]),
+.rdp-day_selected:hover:not([disabled]) {
+  color: white;
+  background-color: var(--rdp-accent-color);
+}
+
+.rdp-day_selected:focus:not([disabled]) {
+  border: var(--rdp-outline-selected);
+}
+
+.rdp:not([dir='rtl']) .rdp-day_range_start:not(.rdp-day_range_end) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rdp:not([dir='rtl']) .rdp-day_range_end:not(.rdp-day_range_start) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rdp[dir='rtl'] .rdp-day_range_start:not(.rdp-day_range_end) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.rdp[dir='rtl'] .rdp-day_range_end:not(.rdp-day_range_start) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rdp-day_range_end.rdp-day_range_start {
+  border-radius: 100%;
+}
+
+.rdp-day_range_middle {
+  border-radius: 0;
+}
+</style><script src="./messagingMiddleware.min.js.download"></script><script src="./defaultVendors.min.js.download"></script><script src="./vendors.min.js.download"></script><script src="./main.min.js.download"></script><script src="./engage.min.js.download"></script><script src="./broadcast.min.js.download"></script><style>body{overscroll-behavior-y:none;-webkit-text-size-adjust:none;text-size-adjust:none;overflow-x:hidden;overflow-y:hidden}#full-screen-indicator{display:none}.cx-messenger-container{position:absolute;top:0px;bottom:6px;right:0;left:0}.cx-messenger-container a:not(.mxg-file-preview-newTabBtn){color:inherit}.cx-messenger{position:absolute;height:100%;right:8px;min-height:195px;bottom:0px;width:96%;box-sizing:border-box;display:flex;flex-direction:column;transition:all 200ms cubic-bezier(0.4, 0, 0.2, 1) 2ms !important}.cx-messenger-preview{max-height:550px}.cx-messenger-open{display:block}.cx-messenger-close{display:none}.cx-messenger-screen-reader{width:1px;height:1px;overflow:hidden;text-indent:-9999px;border:0}.mxg-transcript a:-moz-focusring{outline-style:solid}.Cx-MuiSelect-select{padding-bottom:12px}.mxg-carousel-icon-button:focus-visible,.mxg-attach-file-closebtn:focus-visible,.mxg-button-focus-visible:focus-visible{outline-color:rgba(0,0,0,.55)}.mxg-search-header .Cx-MuiIconButton-edgeEnd:focus-visible{outline-color:rgba(0,0,0,.55)}.mxg-knowledge-container .Cx-MuiListItem-container .Cx-MuiIconButton-edgeEnd:focus-visible{outline-color:rgba(0,0,0,.55)}.mxg-knowledge-container .Cx-MuiListItem-container .Cx-MuiListItem-secondaryAction{outline-color:rgba(0,0,0,.55)}.mxg-fullscreen.cx-messenger-container{z-index:99999;height:99.9%;width:99.5%;max-width:100% !important}.mxg-fullscreen .cx-messenger{bottom:0;right:0;left:0px;height:100%;width:100%}.mxg-fullscreen .cx-messenger .mxg-container-card{height:100%}.mxg-fullscreen .cx-messenger .mxg-input-container .Cx-MuiInputBase-formControl{padding:"12px 12px 1px!important"}.mxg-fullscreen-indicator{display:block !important}@media screen and (max-device-width: 600px),screen and (max-device-width: 600px)and (orientation: landscape),screen and (max-device-width: 711px)and (orientation: landscape),screen and (max-device-height: 428px)and (orientation: landscape),screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 6)and (min-resolution: 192dpi),screen and (max-height: 240.5px)and (-ms-high-contrast: none),(-ms-high-contrast: active){.Cx-MuiContainer-root{z-index:999999;position:fixed}.cx-messenger-container{z-index:99999;height:100%;width:100%;max-width:100% !important}.cx-messenger-tablet{height:auto;width:96%}.cx-mxg-tablet-landscape{height:96%}.cx-messenger{bottom:0;right:0;left:0;height:100%;width:100%}.cx-messenger .mxg-container-card{height:100%}.cx-messenger .mxg-input-container .Cx-MuiInputBase-formControl{padding:"12px 12px 1px!important"}#full-screen-indicator{display:block}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 3.5)and (min-resolution: 192dpi){.mxg-desktop-windows-chrome .Cx-MuiContainer-root{z-index:999999;position:fixed}.mxg-desktop-windows-chrome .cx-messenger-container{z-index:99999;height:100%;width:100%;max-width:100% !important}.mxg-desktop-windows-chrome .cx-messenger{bottom:0;right:0;left:0;height:100%;width:100%}.mxg-desktop-windows-chrome .cx-messenger .mxg-container-card{height:100%}.mxg-desktop-windows-chrome .cx-messenger .mxg-input-container .Cx-MuiInputBase-formControl{padding:"12px 12px 1px!important"}#full-screen-indicator.mxg-desktop-windows-chrome{display:block}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 2)and (min-resolution: 192dpi){.mxg-desktop-windows-chrome .mxg-search-header{max-height:75%}.mxg-desktop-windows-chrome .mxg-home-header{max-height:75%}.mxg-desktop-windows-chrome .mxg-header-logo-img{max-height:30px !important;padding:0}.mxg-desktop-windows-chrome #searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:18vh}.mxg-desktop-windows-chrome .mxg-conversation-container .Cx-MuiInputBase-multiline{padding:12px 18px 12px !important}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 4){.mxg-desktop-mac-chrome .mxg-search-header{max-height:75%}.mxg-desktop-mac-chrome .mxg-home-header{max-height:75%}.mxg-desktop-mac-chrome .mxg-header-logo-img{max-height:30px}.mxg-desktop-mac-chrome #searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:18vh}.mxg-desktop-mac-chrome .mxg-conversation-container .Cx-MuiInputBase-multiline{padding:12px 18px 12px !important}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 4)and (-webkit-max-device-pixel-ratio: 5){.mxg-desktop-windows-chrome .cx-messenger-container{max-width:96% !important;max-height:98% !important}.mxg-desktop-windows-chrome .cx-messenger{max-height:98% !important}.mxg-header{min-width:auto !important}}@-moz-document url-prefix(){@media screen and (min--moz-device-pixel-ratio: 2)and (orientation: landscape){.mxg-desktop-windows-firefox .mxg-header-logo-img{max-height:30px !important;padding:0}}@media screen and (min--moz-device-pixel-ratio: 3)and (orientation: landscape){.mxg-file-preview{max-height:69%}.mxg-file-preview-footer{max-height:50%}.mxg-search-header{max-height:75%}.mxg-home-header{max-height:75%}#searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:20vh}.mxg-header-logo-img{max-height:30px !important;padding:0}}@media all and (-moz-device-pixel-ratio: 5){.cx-messenger{min-height:176px !important}.mxg-home-header{max-height:85%}.mxg-home-header .mxg-header-logo-img{margin-top:2px !important;padding-top:2px !important}.mxg-home-header .mxg-heading{margin-top:2px !important}.mxg-header-logo-img{max-height:30px !important;padding:0}}@media screen and (min--moz-device-pixel-ratio: 4)and (max--moz-device-pixel-ratio: 5)and (orientation: landscape){.mxg-header{min-width:auto !important}}}@media screen and (-ms-high-contrast: none)and (max-height: 365px),screen and (-ms-high-contrast: active)and (max-height: 365px){.mxg-file-preview{max-height:65%}.mxg-file-preview-footer{max-height:50%}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 1.75)and (orientation: portrait){.mxg-file-preview{max-height:65%}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (-webkit-min-device-pixel-ratio: 2)and (min-resolution: 192dpi){.mxg-file-preview{max-height:65%}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px){@media not all and (min-resolution: 0.001dpcm){@supports(-webkit-appearance: none){@media screen and (max-height: 390px){.mxg-file-preview{max-height:55%}.mxg-home-header{max-height:85%}.mxg-search-header{max-height:75%}.mxg-search-header .mxg-header-logo-container{padding-top:24px !important}#searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:18vh}.mxg-header-logo-img{max-height:30px !important;padding:0}}}}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (min-resolution: 192dpi)and (-webkit-device-pixel-ratio: 3){.cx-messenger{min-height:176px !important}.mxg-file-preview{max-height:65%}.mxg-file-preview-footer{max-height:50%}.mxg-toaster-body{max-height:36px !important}.mxg-toaster-message{padding:0}.toaster-button-container{padding-top:12px !important}.toaster-button{margin:0 !important}.mxg-desktop-windows-chrome #searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:14vh}.mxg-desktop-windows-chrome .mxg-home-header{max-height:85% !important}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (min-resolution: 192dpi)and (-webkit-device-pixel-ratio: 3.125){.mxg-home-header{max-height:85% !important}.mxg-home-header .mxg-header-logo-img{margin-top:2px !important;padding-top:2px !important}.mxg-home-header .mxg-heading{margin-top:2px !important}#searchInput-popup.Cx-MuiAutocomplete-listbox{max-height:13vh !important}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (min-resolution: 192dpi)and (-webkit-device-pixel-ratio: 5){.cx-messenger{min-height:176px !important}.mxg-home-header{max-height:85% !important}.mxg-home-header .mxg-header-logo-img{margin-top:2px !important;padding-top:2px !important}.mxg-home-header .mxg-heading{margin-top:2px !important}}@media screen and (min-device-width: 1200px)and (max-device-width: 1920px)and (min-resolution: 192dpi)and (-webkit-device-pixel-ratio: 3.125){.cx-messenger{min-height:176px !important}.mxg-file-preview{max-height:65%}.mxg-file-preview-footer{max-height:50%}}@media only screen and (min-device-width: 1792px)and (-webkit-min-device-pixel-ratio: 1.75)and (-webkit-max-device-pixel-ratio: 4)and (min-resolution: 192dpi){.mxg-desktop-mac-chrome .mxg-multiple-files{max-height:84% !important}}@media only screen and (min-device-width: 1792px)and (-webkit-min-device-pixel-ratio: 2)and (orientation: portrait){.mxg-desktop-mac-safari .mxg-multiple-files{max-height:84% !important}}@media screen and (min-width: 320px)and (max-width: 380px){.mxg-header{min-width:auto !important}}@media screen and (max-width: 360px){.Engage-snackbarMessage{max-width:76% !important}.Engage-snackbarAction{width:20%}.toaster-button{max-width:36% !important}}@media screen and (max-width: 160px){.Engage-snackbarMessage{max-width:68% !important}.Engage-snackbarAction{width:30%}}@media screen and (max-height: 200px),screen and (max-width: 320px){.mxg-header{min-width:auto !important}.mxg-app-home{width:auto !important}.mxg-secondary-btn~.mxg-clear-button{position:relative !important;float:none !important}.mxg-heading{max-width:70% !important;min-width:20% !important}.mxg-header-title,.mxg-header-subTitle{overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important}.cx-messenger{min-height:auto !important}#messenger-menu>.Cx-MuiPaper-root{overflow:auto !important}}@media screen and (max-width: 220px){.mxg-clear-button{position:relative !important;float:none !important}}</style><style>/* Apply a default color scheme */
+/* @media (prefers-color-scheme: no-preference) {
+  html {
+    background-color: green;
+  }
+} */
+/* Apply a light color scheme */
+/* @media (prefers-color-scheme: light) {
+  html {
+    background-color: orange;
+  }
+} */
+/* Apply a dark color scheme */
+/* @media (prefers-color-scheme: dark) {
+  html {
+    background-color: yellowgreen;
+  }
+} */
+</style><script charset="utf-8" src="./date-en.min.js.download"></script></head> <body>  <div><div class="mxg-desktop-windows-chrome cx-messenger-1qfeen"><button class="Cx-MuiButtonBase-root Cx-MuiFab-root Cx-MuiFab-circular Cx-MuiFab-sizeLarge Cx-MuiFab-primary Cx-MuiFab-root Cx-MuiFab-circular Cx-MuiFab-sizeLarge Cx-MuiFab-primary mxg-launcher-btn admin-prevent-pointer cx-messenger-1no1ssw" tabindex="0" type="button" aria-expanded="false" aria-label="Open Messenger" title="Open Messenger" style="right: 8px; left: unset;"><svg class="Cx-MuiSvgIcon-root Cx-MuiSvgIcon-fontSizeMedium cx-messenger-1fqukdu" focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="ChatIcon"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2M6 9h12v2H6zm8 5H6v-2h8zm4-6H6V6h12z"></path></svg><span class="MuiTouchRipple-root cx-messenger-w0pj6f"></span></button><div class="cx-status" aria-live="polite" aria-relevant="additions text" aria-atomic="false" tabindex="-1" style="width: 1px; height: 1px; overflow: hidden; text-indent: -9999px; border: 0px;"></div></div><div tabindex="-1" id="full-screen-indicator" class="mxg-desktop-windows-chrome "></div></div></body></html>

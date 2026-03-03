@@ -1,0 +1,141 @@
+---
+title: "Client Report - Weather Delays"
+subtitle: "Unit 3 Task 2"
+author: "Elijah Kearl"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_json("https://github.com/byuidatascience/data4missing/raw/master/data-raw/flights_missing/flights_missing.json")
+```
+
+## QUESTION 1
+
+1. __Which airport has the worst delays?__ Describe the metric you chose, and why you chose it to determine the “worst” airport. Your answer should include a summary table that lists (for each airport) the total number of flights, total number of delayed flights, proportion of delayed flights, and average delay time in hours. 
+
+I decided to measure the "worst" airport by looking at the ratio of minutes delayed per flight. I chose this metric because it gives a more accurate picture of how bad the delays are at each airport, rather than just looking at the total number of delayed flights. For example, an airport with a high number of flights but a low number of delayed flights may not be as bad as an airport with fewer flights but a higher proportion of delays, especially if those delays are long. By looking at the ratio of total flights to minutes delayed, we can get a better sense of how frequently and how severely flights are delayed at each airport.
+
+As you see San Francisco has the worst delays bringing the average wait time to 16 minutes per flight.
+
+```{python}
+# Include and execute your code here
+
+df_cleaned = df.replace(["","n/a",-999], np.nan)
+df_cleaned.year = df_cleaned.year.ffill()
+
+conn = sqlite3.connect(":memory:")
+
+df_cleaned.airport_name = df_cleaned.airport_name.fillna(df_cleaned.groupby('airport_code')['airport_name'].transform('first'))
+
+df_cleaned.to_sql("flights", conn, index=False)
+
+query = """
+SELECT airport_code,
+        airport_name,
+       SUM(minutes_delayed_total) AS minutes_delayed,
+       SUM(num_of_flights_total) AS total_flights,
+       SUM(num_of_delays_total) AS total_delays,
+         ROUND(SUM(num_of_delays_total) / ROUND(SUM(num_of_flights_total), 2), 2) AS delay_proportion,
+         ROUND((SUM(minutes_delayed_total) / ROUND(SUM(num_of_delays_total), 2) / 60.0), 2) AS avg_delay_hours,
+       ROUND(SUM(minutes_delayed_total) / ROUND(SUM(num_of_flights_total), 2), 2) AS delay_ratio
+FROM flights
+GROUP BY airport_code
+ORDER BY delay_ratio DESC;
+"""
+delay_ratio = pd.read_sql_query(query, conn)
+
+delay_ratio
+
+```
+
+
+## QUESTION 2
+
+According to the BTS website, the “Weather” category only accounts for severe weather delays. Mild weather delays are not counted in the “Weather” category, but are actually included in both the “NAS” and “Late-Arriving Aircraft” categories. __Your job is to create a new column that calculates the total number of flights delayed by weather (both severe and mild).__ You will need to replace all the missing values in the Late Aircraft variable with the mean. Show your work by printing the first 5 rows of data in a table. Use these three rules for your calculations:  
+
+    a. 100% of delayed flights in the Weather category are due to weather  
+    a. 30% of all delayed flights in the Late-Arriving category are due to weather  
+    a. From April to August, 40% of delayed flights in the NAS category are due to weather. The rest of the months, the proportion rises to 65%  
+
+Here we can see the realistic impact of weather on flight delays, as it accounts for both severe and mild weather conditions. 
+
+```{python}
+# Include and execute your code here
+conn = sqlite3.connect(":memory:")
+df_cleaned.month = df_cleaned.month.ffill()
+df_cleaned.num_of_delays_late_aircraft = df_cleaned.num_of_delays_late_aircraft.fillna(df_cleaned.num_of_delays_late_aircraft.mean())
+
+df_cleaned.to_sql("flights", conn, index=False)
+
+query = """
+SELECT *, 
+    ROUND(CASE
+        WHEN month IN ('April','May','June','July','August') THEN (num_of_delays_weather + (0.3 * num_of_delays_late_aircraft) + (0.4 * num_of_delays_nas))
+        ELSE (num_of_delays_weather + (0.3 * num_of_delays_late_aircraft) + (0.65 * num_of_delays_nas))
+    END, 0) AS weather_total
+FROM flights;
+"""
+weather = pd.read_sql_query(query, conn)
+
+weather.head(5)
+
+```
+
+## Question 3
+
+__Using the new weather variable calculated above, create a barplot showing the proportion of all flights that are delayed by weather at each airport. Describe what you learn from this graph.__  
+
+From this chart we can clearly see the impact of weather on airports. Surprisingly San Francisco has the highest proportion of flights delayed by weather, while Salt Lake City has the lowest proportion.
+
+```{python}
+# Include and execute your code here
+conn = sqlite3.connect(":memory:")
+
+weather.to_sql("flights", conn, index=False)
+
+query = """
+SELECT *, SUM(weather_total)/SUM(num_of_flights_total) AS weather_prop
+FROM flights
+GROUP BY airport_code
+ORDER BY SUM(weather_total)/SUM(num_of_flights_total)
+"""
+
+weather_prop = pd.read_sql_query(query, conn)
+
+ggplot(weather_prop, aes(x='airport_code', y='weather_prop')) + geom_bar(stat='identity') + labs(x="Airport Name", y="Proportion of Flights Delayed by Weather", title="Proportion of Flights Delayed by Weather at Each Airport")
+
+
+```
