@@ -191,22 +191,34 @@ if __name__ == "__main__":
         m = re.match(r"([A-Za-z ]+?)\s*\d", after)
         return m.group(1).strip() if m else None
 
+    # at this point we've parsed schedules, now apply a fixed list
+    # of known buildings rather than deriving candidates every time.
+    BUILDINGS = [
+        "ASC", "Ag Engineering Bldg", "Austin", "BEN", "Benson",
+        "Clarke", "Court", "ETC", "Hart", "Hinckley", "MC", "Ricks",
+        "Romney", "STC", "Smith", "Snow", "Spori", "Taylor",
+        "Taylor Chapel", "University Comm Bldg",
+    ]
+
+    # optionally log the candidate values for debugging
     df['building_candidate'] = df['schedule'].apply(candidate_building)
     candidates = sorted({b for b in df['building_candidate'].dropna().unique()})
-    print("\ncandidate buildings from schedules (finite set):\n", candidates)
+    print("\ncandidate buildings (seen in raw data):\n", candidates)
 
-    # use the candidates list to fill missing schedule_building values
-    buildings = candidates  # for normalization we trust these simple names
-
+    # force every schedule_building to one of the BUILDINGS list, if possible.
     def fill_building(row):
         bld = row['schedule_building']
         if pd.isna(bld) or not bld:
-            for b in buildings:
+            for b in BUILDINGS:
                 if b and b in row['schedule']:
                     return b
         return bld
 
     df2['schedule_building'] = df2.apply(fill_building, axis=1)
+
+    # blank and eventually drop rows that still are not in BUILDINGS
+    df2.loc[~df2.schedule_building.isin(BUILDINGS), 'schedule_building'] = pd.NA
+    df2 = df2.dropna(subset=['schedule_building'])
 
     # recompute room if building was filled from schedule
     def fix_room(row):

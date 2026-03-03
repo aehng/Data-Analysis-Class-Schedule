@@ -34,40 +34,12 @@ LetsPlot.setup_html(isolated_frame=True)
 ```
 
 
-```{python}
-
-buildings = [
-    "ASC", "Ag Engineering Bldg", "Austin", "BEN", "Benson",
-    "Clarke", "Court", "ETC", "Hart", "Hinckley", "MC", "Ricks",
-    "Romney", "STC", "Smith", "Snow", "Spori", "Taylor",
-    "Taylor Chapel", "University Comm Bldg",
-]
-
-df = pd.read_sql_query("SELECT * FROM courses", sqlite3.connect("parsed.db"))
-
-df.loc[df.schedule_building.str.contains("Arranged", na=False), "schedule_building"] = np.nan
-
-df['schedule_building'] = df['schedule_building'].replace('NULL', np.nan)
-
-df.dropna(subset=['schedule_building'], inplace=True)
-
-for b in buildings:
-    mask = df.schedule_building.str.contains(b, na=False)
-    df.loc[mask, "schedule_building"] = b
-
-df.to_sql("courses", sqlite3.connect("cleaned.db"), if_exists="replace", index=False)
-
-```
-
-
-
-
 ## QUESTION 1
 
 __What is the best month to fly if you want to avoid delays of any length?__ 
 
 ```{python}
-conn = sqlite3.connect("cleaned.db")
+conn = sqlite3.connect("parsed.db")
 
 
 query = """
@@ -80,10 +52,7 @@ table = pd.read_sql_query(query, conn)
 
 print(table.schedule_time_range[0])
 
-# plot (or inspect) the results
-# ggplot(delay_month, aes(x='schedule', y='course_section', fill='schedule')) + \
-#     geom_bar(stat='identity') + \
-#     labs(x="Schedule", y="Number of courses", title="Number of courses by schedule")
+
 
 ```
 
