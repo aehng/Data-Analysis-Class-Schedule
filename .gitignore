@@ -1,0 +1,3 @@
+# ignore scraped HTML files and their assets
+*.html
+*_files/
