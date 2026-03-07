@@ -28,31 +28,78 @@ execute:
 import pandas as pd 
 import numpy as np
 import sqlite3
+import folium
+from folium.plugins import HeatMap
 from lets_plot import *
 
 LetsPlot.setup_html(isolated_frame=True)
 ```
 
 
-## QUESTION 1
 
-__What is the best month to fly if you want to avoid delays of any length?__ 
+```{python}
+BUILDINGS = {
+        "ASC": [43.826870640685534, -111.88549751753085], 
+        "Ag Engineering Bldg": [43.81345880643873, -111.78324346388294], 
+        "Austin": [43.81602094160326, -111.78433750806025], 
+        "Benson": [43.81542818516958, -111.78332931738849],
+        "Clarke": [43.82028905100857, -111.78171856563219], 
+        "ETC": [43.81418502185512, -111.78314595016181], 
+        "Hart": [43.81959162394444, -111.7857075397191], 
+        "Hinckley": [43.81591145361786, -111.77987288445603], 
+        "MC": [43.8185565017281, -111.78256470845697], 
+        "Ricks": [43.814850021172795, -111.78099334180233],
+        "Romney": [43.820304271261755, -111.78318931968305], 
+        "STC": [43.81458723923863, -111.78429023101532], 
+        "Smith": [43.81917896874557, -111.78147799511062], 
+        "Snow": [43.82128809081587, -111.78363435973117], 
+        "Spori": [43.82083016022857, -111.78240927161345], 
+        "Taylor": [43.81708501479656, -111.78245269740484],
+        "University Comm Bldg": [43.81736526696351, -111.77942076274879],
+        "McKay": [43.81937794824518, -111.78319755563858],
+    }
+```
+
+## Class Foot-traffic Heatmap 
 
 ```{python}
 conn = sqlite3.connect("parsed.db")
 
 
 query = """
-SELECT *
-FROM courses;
+SELECT schedule_building, SUM(seats_taken_count)
+FROM courses
+GROUP BY schedule_building;
 """
 
 table = pd.read_sql_query(query, conn)
 
 
-print(table.schedule_time_range[0])
+
+map_object = folium.Map(location = [43.816267187242595, -111.78185114232832], zoom_start = 15 )
+
+data = []
+count = 1
+
+for building in BUILDINGS:
+  BUILDINGS[building].append(int(table.loc[table['schedule_building'] == building]['SUM(seats_taken_count)'].values[0]))
+  data.append(BUILDINGS[building])
 
 
+for lat, lon, amount in data:
+    folium.CircleMarker(
+        location=[lat, lon],
+        radius=15,                # Adjust to change the "hoverable" area
+        fill=True,
+        color=None,               # Removes the border
+        fill_opacity=0,           # Makes it invisible
+        tooltip=amount, # Show on hover
+        popup=f"Total: {amount}"     # Show on click
+    ).add_to(map_object)
+
+HeatMap(data).add_to(map_object)
+
+map_object
 
 ```
 

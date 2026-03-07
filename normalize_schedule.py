@@ -12,6 +12,25 @@ import sqlite3
 _schedule_re = re.compile(r"\(([^)]+)\)")  # capture dates inside ()
 
 
+def parse_seats(s: str):
+    """Return the integer number of open seats (right of slash) or None.
+
+    The original column contains strings like ``"21 ∕ 30"`` where the
+    slash is the unicode division slash (U+2215).  We ignore the total
+    and just return the left-hand value as an integer when possible.
+    """
+    if not isinstance(s, str):
+        return None
+    # split on any slash-like character
+    parts = re.split(r"[\u002F\u2215]", s)
+    if len(parts) < 2:
+        return None
+    try:
+        return int(parts[1].strip()) - int(parts[0].strip())
+    except ValueError:
+        return None
+
+
 def _normalize_time(t: str):
     """Convert a time like "11:30AM" or "1:45PM" to 24‑hour string.
 
@@ -176,6 +195,10 @@ if __name__ == "__main__":
     df = pd.read_sql_query("SELECT * FROM courses", conn)
     conn.close()
 
+    # compute numeric seats value and keep the original text column
+    if 'seats_open' in df.columns:
+        df['seats_taken_count'] = df['seats_open'].apply(parse_seats)
+
     print("original schedules (first 10):\n", df['schedule'].head(10))
 
     df2 = add_normalized_columns(df)
@@ -193,17 +216,41 @@ if __name__ == "__main__":
 
     # at this point we've parsed schedules, now apply a fixed list
     # of known buildings rather than deriving candidates every time.
-    BUILDINGS = [
-        "ASC", "Ag Engineering Bldg", "Austin", "BEN", "Benson",
-        "Clarke", "Court", "ETC", "Hart", "Hinckley", "MC", "Ricks",
-        "Romney", "STC", "Smith", "Snow", "Spori", "Taylor",
-        "Taylor Chapel", "University Comm Bldg",
-    ]
+    # We also have a small alias table so that multiple names map to
+    # a single canonical building.  That handles BEN/Benson and
+    # Taylor/Taylor Chapel (and can be extended if new aliases crop up).
+    BUILDING_ALIASES = {
+        "BEN": "Benson",
+        "Benson": "Benson",
+        "Taylor Chapel": "Taylor",
+        "Taylor": "Taylor",
+        # sometimes people abbreviate Austin
+        "AUS": "Austin",
+        "Court": "Hart",  # some schedules say "Court" but it's actually Hart Building
+        "Snow Recital Hall": "Snow",  # some schedules say "Snow Recital Hall" but it's actually Snow Building
+        "Barrus Concert Hall": "Snow",  # some schedules say "Barrus Concert Hall" but it's actually Snow Building
+    }
+
+    def canonical_name(name):
+        if not isinstance(name, str):
+            return name
+        return BUILDING_ALIASES.get(name, name)
+
+    # canonical buildings list contains the unique set of names we accept
+    BUILDINGS = sorted({
+        *BUILDING_ALIASES.values(),
+        "ASC", "Ag Engineering Bldg", "Austin", "Barrus Concert Hall", "Clarke",
+        "ETC", "Hart", "Hinckley", "MC", "McKay", "Ricks",
+        "Romney", "STC", "Smith", "Snow", "Spori", "University Comm Bldg",
+    })
 
     # optionally log the candidate values for debugging
     df['building_candidate'] = df['schedule'].apply(candidate_building)
     candidates = sorted({b for b in df['building_candidate'].dropna().unique()})
     print("\ncandidate buildings (seen in raw data):\n", candidates)
+    missing = [b for b in candidates if canonical_name(b) not in BUILDINGS]
+    if missing:
+        print("\n-- buildling names not covered by our canonical list:\n", missing)
 
     # force every schedule_building to one of the BUILDINGS list, if possible.
     def fill_building(row):
@@ -215,6 +262,9 @@ if __name__ == "__main__":
         return bld
 
     df2['schedule_building'] = df2.apply(fill_building, axis=1)
+
+    # map any aliases to canonical names
+    df2['schedule_building'] = df2['schedule_building'].apply(canonical_name)
 
     # blank and eventually drop rows that still are not in BUILDINGS
     df2.loc[~df2.schedule_building.isin(BUILDINGS), 'schedule_building'] = pd.NA
@@ -231,9 +281,10 @@ if __name__ == "__main__":
 
     df2['schedule_room'] = df2.apply(fix_room, axis=1)
 
-    # write the extended dataframe into a new sqlite database
+    # write the extended dataframe into a new sqlite database; retain
+    # both original seats_open text and the newly derived count column.
     out_conn = sqlite3.connect("parsed.db")
     # overwrite if it already exists
     df2.to_sql("courses", out_conn, if_exists="replace", index=False)
     out_conn.close()
-    print("\nWrote normalized table to parsed.db")
+    print("\nWrote normalized table to parsed.db (includes seats_taken_count)")

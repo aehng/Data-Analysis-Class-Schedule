@@ -1,0 +1,9 @@
+# third-party dependencies for data analysis scripts
+beautifulsoup4
+pandas
+folium
+ipykernel
+lets-plot
+quarto
+
+# sqlite3 and os/re/ are part of the standard library
