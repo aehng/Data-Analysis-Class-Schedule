@@ -60,14 +60,14 @@ BUILDINGS = {
     }
 ```
 
-## Class Foot-traffic Heatmap 
+# Class Foot-traffic Heatmap (TOTALS)
 
 ```{python}
 conn = sqlite3.connect("parsed.db")
 
 
 query = """
-SELECT schedule_building, SUM(seats_taken_count)
+SELECT schedule_building, SUM(seats_taken_count), schedule_time_start
 FROM courses
 GROUP BY schedule_building;
 """
@@ -78,12 +78,16 @@ table = pd.read_sql_query(query, conn)
 
 map_object = folium.Map(location = [43.816267187242595, -111.78185114232832], zoom_start = 15 )
 
-data = []
-count = 1
+# build a simple lookup from the query results so we don't scan the
+# dataframe on each iteration
+seats = table.set_index('schedule_building')['SUM(seats_taken_count)'].to_dict()
 
-for building in BUILDINGS:
-  BUILDINGS[building].append(int(table.loc[table['schedule_building'] == building]['SUM(seats_taken_count)'].values[0]))
-  data.append(BUILDINGS[building])
+# create the list we feed to folium/HeatMap in one comprehension;
+# BUILDINGS is left unchanged, preventing later unpack errors.
+data = [
+    [lat, lon, int(seats.get(b, 0))]
+    for b, (lat, lon) in BUILDINGS.items()
+]
 
 
 for lat, lon, amount in data:
@@ -103,3 +107,67 @@ map_object
 
 ```
 
+
+# Class Foot-traffic Heatmap (MAX TIME FRAME)
+
+As we see below, at 11:30 on Wednesday the campus has the most amount of students with 6,778 attending classes at once. 
+
+```{python}
+conn = sqlite3.connect("parsed.db")
+
+
+query = """
+SELECT weekday, SUM(seats), time_start
+FROM meetings
+GROUP BY time_start, weekday
+ORDER BY SUM(seats) DESC;
+"""
+
+table = pd.read_sql_query(query, conn)
+
+print(table.head(10))
+```
+
+Below a Heatmap of this data (students on campus at 12:45) is included
+
+
+```{python}
+conn = sqlite3.connect("parsed.db")
+
+
+query = """
+SELECT weekday, building, SUM(seats), time_start
+FROM meetings
+WHERE time_start = '11:30' AND weekday = 'wed'
+GROUP BY building;
+"""
+
+table = pd.read_sql_query(query, conn)
+
+map_object = folium.Map(location = [43.816267187242595, -111.78185114232832], zoom_start = 15 )
+
+# turn the query result into a plain dict: {building: total_seats}
+seats = table.set_index('building')['SUM(seats)'].to_dict()
+
+# build the list of [lat, lon, amount] in one go; do not touch BUILDINGS
+data = [
+    [lat, lon, int(seats.get(b, 0))]
+    for b, (lat, lon) in BUILDINGS.items()
+]
+
+
+for lat, lon, amount in data:
+    folium.CircleMarker(
+        location=[lat, lon],
+        radius=15,                # Adjust to change the "hoverable" area
+        fill=True,
+        color=None,               # Removes the border
+        fill_opacity=0,           # Makes it invisible
+        tooltip=amount, # Show on hover
+        popup=f"Total: {amount}"     # Show on click
+    ).add_to(map_object)
+
+HeatMap(data).add_to(map_object)
+
+map_object
+```

@@ -3,7 +3,7 @@ import os
 from bs4 import BeautifulSoup
 
 html_path = os.path.join(os.path.dirname(__file__),
-                         "Course Search - Search Results BYUI _ Public Course Search _ Class Schedule _ BYU-Idaho's Personalized Access1.html")
+                         "Course Search - Search Results BYUI _ Public Course Search _ Class Schedule _ BYU-Idaho's Personalized Access.html")
 
 def sanitize_header(name: str) -> str:
     """Turn a header string into a safe sqlite column name.

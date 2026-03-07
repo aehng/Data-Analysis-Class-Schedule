@@ -26,11 +26,14 @@ The expected minimum amount of time each Sprint for each category is as follows:
 
 |Date      |Start Time|Category|Description                                 |Total Minutes|
 |----------|----------|:------:|--------------------------------------------|:-----------:|
+|02/23/2026|12:45     |MTG     |Class meeting                               |60           |
+|02/25/2026|12:45     |MTG     |Class meeting                               |60           |
 |03/02/2026|12:15     |TP      |Work on team project                        |30           |
-|03/02/2026|12:45     |IM      |Individual module work                      |40           |
+|03/02/2026|12:45     |MTG     |Class meeting                               |60           |
+|03/04/2026|12:45     |MTG     |Class meeting                               |60           |
 |03/06/2026|17:35     |IM      |HEAT map and data processing                |165          |
-|          |          |        |                                            |             |
-|          |          |        |                                            |             |
+|03/06/2026|21:00     |IM      |Map display                                 |40           |
+|03/07/2026|14:35     |IM/TP   |                                            |             |
 |          |          |        |                                            |             |
 
 _Note: Add more rows as needed._
@@ -39,7 +42,7 @@ _Note: Add more rows as needed._
 
 |Categroy                       |Total Time (Hours:Minutes)|
 |-------------------------------|:------------------------:|
-|IM - Individual Module         |                          |
-|TP - Team Project              |                          |
-|MTG - Class Meetings           |                          |
-|**TOTAL**                      |                          |
+|IM - Individual Module         |3:25                      |
+|TP - Team Project              |0:30                      |
+|MTG - Class Meetings           |4:00                      |
+|**TOTAL**                      |7:55                      |

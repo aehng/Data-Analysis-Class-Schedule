@@ -177,15 +177,94 @@ def parse_schedule(s: str) -> dict:
     }
 
 
+def _day_flags(days_str: str) -> dict:
+    """Convert a compact day code string (e.g. ``MWF`` or ``TR``)
+    into a dict of weekday booleans.
+
+    We map the usual single-letter codes used by the registrar to full
+    day names.  If the input is not a string the result is a set of all
+    flags ``False``.
+    """
+    mapping = {
+        "M": "mon",
+        "T": "tue",
+        "W": "wed",
+        "R": "thu",
+        "F": "fri",
+        "S": "sat",  # some courses use S or Su for Saturday/Sunday
+        "U": "sun",
+    }
+    flags = {v: False for v in mapping.values()}
+    if isinstance(days_str, str):
+        for ch in days_str.upper():
+            if ch in mapping:
+                flags[mapping[ch]] = True
+    return flags
+
+
 def add_normalized_columns(df: pd.DataFrame, col: str = "schedule") -> pd.DataFrame:
     """Return a new DataFrame with parsed schedule columns added.
 
     The original column is left in place; new columns are named
-    ``<col>_days``, ``<col>_time``, etc.
+    ``<col>_days``, ``<col>_time``, etc.  In addition to the raw
+    ``<col>_days`` string produced by :func:`parse_schedule`, we also
+    create seven boolean columns (``<col>_mon`` through ``<col>_sun``)
+    that indicate whether the course meets on that weekday.  This makes
+    it easy to filter the table by individual days without having to
+    interpret the compact code.
     """
     parsed = df[col].apply(parse_schedule).apply(pd.Series)
+    # expand weekday flags from the unprefixed 'days' column; the
+    # renaming happens later, so we don't yet have ``schedule_days``
+    weekday_flags = parsed['days'].apply(_day_flags).apply(pd.Series)
+    parsed = pd.concat([parsed, weekday_flags], axis=1)
+
     parsed.columns = [f"{col}_{c}" for c in parsed.columns]
     return pd.concat([df, parsed], axis=1)
+
+
+def explode_meetings(df: pd.DataFrame, col: str = "schedule") -> pd.DataFrame:
+    """Return a DataFrame with one row per weekday/time for each input row.
+
+    The output has columns:
+
+    * ``orig_index`` – original dataframe index so we can trace back if
+      needed
+    * ``weekday`` – one of ``mon``/``tue``/…/``sun``
+    * ``time_start``/``time_end`` – normalized 24‑hour times
+    * plus any other fields of interest such as ``building`` or
+      ``seats_taken_count``.  The function currently copies the
+      building and seat count, but you can extend it.
+
+    This “long” form is convenient for aggregations that involve the
+    day-of-week, because each meeting already occupies its own row.
+
+    The function is resilient to being passed a DataFrame that already
+    contains the expanded columns (for example, if you accidentally
+    re‑ran ``add_normalized_columns``).  Duplicate columns are dropped
+    and boolean values are coerced to scalars to avoid ambiguous
+    truth-value errors.
+    """
+    df2 = add_normalized_columns(df, col)
+    # drop duplicate columns that may have been introduced by a prior
+    # normalization step
+    df2 = df2.loc[:, ~df2.columns.duplicated()]
+
+    rows = []
+    for idx, r in df2.iterrows():
+        for wd in ("mon", "tue", "wed", "thu", "fri", "sat", "sun"):
+            flag = r.get(f"{col}_{wd}")
+            # flag may be a scalar or a single-element Series; coerce to bool
+            if bool(flag):
+                rows.append({
+                    "orig_index": idx,
+                    "weekday": wd,
+                    "time_start": r.get(f"{col}_time_start"),
+                    "time_end": r.get(f"{col}_time_end"),
+                    "building": r.get(f"{col}_building"),
+                    "seats": r.get("seats_taken_count"),
+                })
+    return pd.DataFrame(rows)
 
 
 if __name__ == "__main__":
@@ -229,6 +308,8 @@ if __name__ == "__main__":
         "Court": "Hart",  # some schedules say "Court" but it's actually Hart Building
         "Snow Recital Hall": "Snow",  # some schedules say "Snow Recital Hall" but it's actually Snow Building
         "Barrus Concert Hall": "Snow",  # some schedules say "Barrus Concert Hall" but it's actually Snow Building
+        "Snow Drama Theatre": "Snow",
+        "Hinckley Cultural Hall AMW": "Hinckley"
     }
 
     def canonical_name(name):
@@ -286,5 +367,11 @@ if __name__ == "__main__":
     out_conn = sqlite3.connect("parsed.db")
     # overwrite if it already exists
     df2.to_sql("courses", out_conn, if_exists="replace", index=False)
+
+    # create the long-form "meetings" table and save it as well
+    meetings = explode_meetings(df2)
+    meetings.to_sql("meetings", out_conn, if_exists="replace", index=False)
+
     out_conn.close()
     print("\nWrote normalized table to parsed.db (includes seats_taken_count)")
+    print("Also wrote exploded meetings table with one row per weekday/time")
