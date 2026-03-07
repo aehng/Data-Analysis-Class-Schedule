@@ -28,7 +28,7 @@ The expected minimum amount of time each Sprint for each category is as follows:
 |----------|----------|:------:|--------------------------------------------|:-----------:|
 |03/02/2026|12:15     |TP      |Work on team project                        |30           |
 |03/02/2026|12:45     |IM      |Individual module work                      |40           |
-|03/06/2026|17:35     |IM      |                                            |             |
+|03/06/2026|17:35     |IM      |HEAT map and data processing                |165          |
 |          |          |        |                                            |             |
 |          |          |        |                                            |             |
 |          |          |        |                                            |             |
