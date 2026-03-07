@@ -128,7 +128,7 @@ table = pd.read_sql_query(query, conn)
 print(table.head(10))
 ```
 
-Below a Heatmap of this data (students on campus at 12:45) is included
+Below a Heatmap of this data (students on campus at 11:30 on Wednesday) is included
 
 
 ```{python}
