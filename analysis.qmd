@@ -91,6 +91,8 @@ data = [
 
 
 for lat, lon, amount in data:
+    if amount == 0:
+        continue
     folium.CircleMarker(
         location=[lat, lon],
         radius=15,                # Adjust to change the "hoverable" area
@@ -110,64 +112,197 @@ map_object
 
 # Class Foot-traffic Heatmap (MAX TIME FRAME)
 
-As we see below, at 11:30 on Wednesday the campus has the most amount of students with 6,778 attending classes at once. 
+To find when the most students are on campus, we need to account for **overlapping classes**. A class that starts at 11:00 and ends at 12:00 overlaps with a class starting at 11:30, so both should be counted at 11:45.
 
 ```{python}
 conn = sqlite3.connect("parsed.db")
 
-
+# Create a CTE of all unique time points, then find concurrent enrollment
 query = """
-SELECT weekday, SUM(seats), time_start
-FROM meetings
-GROUP BY time_start, weekday
-ORDER BY SUM(seats) DESC;
+WITH time_points AS (
+    SELECT DISTINCT time_start AS time_point FROM meetings
+    WHERE time_start IS NOT NULL
+    UNION
+    SELECT DISTINCT time_end AS time_point FROM meetings
+    WHERE time_end IS NOT NULL
+),
+concurrent_enrollment AS (
+    SELECT 
+        tp.time_point,
+        m.weekday,
+        SUM(m.seats) AS concurrent_students
+    FROM time_points tp
+    CROSS JOIN meetings m
+    WHERE m.time_start <= tp.time_point 
+      AND m.time_end > tp.time_point
+      AND m.time_start IS NOT NULL
+      AND m.time_end IS NOT NULL
+    GROUP BY tp.time_point, m.weekday
+)
+SELECT weekday, time_point AS time, concurrent_students
+FROM concurrent_enrollment
+ORDER BY concurrent_students DESC
+LIMIT 20;
 """
 
-table = pd.read_sql_query(query, conn)
+peak_times = pd.read_sql_query(query, conn)
+max_row = peak_times.iloc[0]
 
-print(table.head(10))
+print(f"Peak concurrent enrollment: {int(max_row['concurrent_students'])} students")
+print(f"Occurs on {max_row['weekday']} at {max_row['time']}")
+print("\nTop 10 busiest times:")
+print(peak_times.head(10))
 ```
 
-Below a Heatmap of this data (students on campus at 11:30 on Wednesday) is included
-
+Now let's visualize the peak time with a heatmap:
 
 ```{python}
-conn = sqlite3.connect("parsed.db")
+# Get building breakdown for the peak time
+peak_weekday = max_row['weekday']
+peak_time = max_row['time']
 
-
-query = """
-SELECT weekday, building, SUM(seats), time_start
+query = f"""
+SELECT 
+    building,
+    SUM(seats) AS total_seats
 FROM meetings
-WHERE time_start = '11:30' AND weekday = 'wed'
+WHERE weekday = '{peak_weekday}'
+  AND time_start <= '{peak_time}'
+  AND time_end > '{peak_time}'
+  AND time_start IS NOT NULL
+  AND time_end IS NOT NULL
 GROUP BY building;
 """
 
-table = pd.read_sql_query(query, conn)
+building_data = pd.read_sql_query(query, conn)
 
 map_object = folium.Map(location = [43.816267187242595, -111.78185114232832], zoom_start = 15 )
 
-# turn the query result into a plain dict: {building: total_seats}
-seats = table.set_index('building')['SUM(seats)'].to_dict()
+# turn the result into a plain dict: {building: total_seats}
+seats = building_data.set_index('building')['total_seats'].to_dict()
 
-# build the list of [lat, lon, amount] in one go; do not touch BUILDINGS
+# build the list of [lat, lon, amount] in one go
 data = [
     [lat, lon, int(seats.get(b, 0))]
     for b, (lat, lon) in BUILDINGS.items()
 ]
+# filter out zeros for heatmap
+filtered = [entry for entry in data if entry[2] > 0]
 
-
-for lat, lon, amount in data:
+for lat, lon, amount in filtered:
     folium.CircleMarker(
         location=[lat, lon],
-        radius=15,                # Adjust to change the "hoverable" area
+        radius=15,
         fill=True,
-        color=None,               # Removes the border
-        fill_opacity=0,           # Makes it invisible
-        tooltip=amount, # Show on hover
-        popup=f"Total: {amount}"     # Show on click
+        color=None,
+        fill_opacity=0,
+        tooltip=amount,
+        popup=f"Total: {amount}"
     ).add_to(map_object)
 
-HeatMap(data).add_to(map_object)
+HeatMap(filtered).add_to(map_object)
 
 map_object
+```
+
+
+
+
+
+# Class Foot-traffic Heatmap (MIN TIME FRAME)
+
+Now let's find the least busy time on campus (excluding times with zero classes):
+
+```{python}
+# Query for minimum concurrent enrollment
+query = """
+WITH time_points AS (
+    SELECT DISTINCT time_start AS time_point FROM meetings
+    WHERE time_start IS NOT NULL
+    UNION
+    SELECT DISTINCT time_end AS time_point FROM meetings
+    WHERE time_end IS NOT NULL
+),
+concurrent_enrollment AS (
+    SELECT 
+        tp.time_point,
+        m.weekday,
+        SUM(m.seats) AS concurrent_students
+    FROM time_points tp
+    CROSS JOIN meetings m
+    WHERE m.time_start <= tp.time_point 
+      AND m.time_end > tp.time_point
+      AND m.time_start IS NOT NULL
+      AND m.time_end IS NOT NULL
+    GROUP BY tp.time_point, m.weekday
+)
+SELECT weekday, time_point AS time, concurrent_students
+FROM concurrent_enrollment
+WHERE concurrent_students > 0
+ORDER BY concurrent_students ASC
+LIMIT 20;
+"""
+
+min_times = pd.read_sql_query(query, conn)
+min_row = min_times.iloc[0]
+
+print(f"Minimum concurrent enrollment: {int(min_row['concurrent_students'])} students")
+print(f"Occurs on {min_row['weekday']} at {min_row['time']}")
+print("\nBottom 10 least busy times (with classes):")
+print(min_times.head(10))
+```
+
+Visualize the least busy time with a heatmap:
+
+```{python}
+# Get building breakdown for the minimum time
+min_weekday = min_row['weekday']
+min_time = min_row['time']
+
+query = f"""
+SELECT 
+    building,
+    SUM(seats) AS total_seats
+FROM meetings
+WHERE weekday = '{min_weekday}'
+  AND time_start <= '{min_time}'
+  AND time_end > '{min_time}'
+  AND time_start IS NOT NULL
+  AND time_end IS NOT NULL
+GROUP BY building;
+"""
+
+building_data = pd.read_sql_query(query, conn)
+
+map_object = folium.Map(location = [43.816267187242595, -111.78185114232832], zoom_start = 15 )
+
+# turn the result into a plain dict: {building: total_seats}
+seats = building_data.set_index('building')['total_seats'].to_dict()
+
+# build the list of [lat, lon, amount] in one go
+data = [
+    [lat, lon, int(seats.get(b, 0))]
+    for b, (lat, lon) in BUILDINGS.items()
+]
+filtered = [entry for entry in data if entry[2] > 0]
+
+for lat, lon, amount in filtered:
+    folium.CircleMarker(
+        location=[lat, lon],
+        radius=15,
+        fill=True,
+        color=None,
+        fill_opacity=0,
+        tooltip=amount,
+        popup=f"Total: {amount}"
+    ).add_to(map_object)
+
+HeatMap(filtered).add_to(map_object)
+
+map_object
+```
+
+```{python}
+# Clean up
+conn.close()
 ```

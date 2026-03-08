@@ -239,15 +239,19 @@ def explode_meetings(df: pd.DataFrame, col: str = "schedule") -> pd.DataFrame:
     This “long” form is convenient for aggregations that involve the
     day-of-week, because each meeting already occupies its own row.
 
-    The function is resilient to being passed a DataFrame that already
-    contains the expanded columns (for example, if you accidentally
-    re‑ran ``add_normalized_columns``).  Duplicate columns are dropped
-    and boolean values are coerced to scalars to avoid ambiguous
-    truth-value errors.
+    If the DataFrame already contains normalized schedule columns (e.g.
+    ``schedule_mon``, ``schedule_time_start``), those are used directly
+    instead of re-parsing, which prevents phantom records from appearing
+    due to double-normalization. Rows without valid time_start or building
+    are automatically skipped.
     """
-    df2 = add_normalized_columns(df, col)
-    # drop duplicate columns that may have been introduced by a prior
-    # normalization step
+    # check if already normalized; if not, normalize it
+    if f"{col}_mon" not in df.columns:
+        df2 = add_normalized_columns(df, col)
+    else:
+        df2 = df.copy()
+    
+    # drop duplicate columns that may exist
     df2 = df2.loc[:, ~df2.columns.duplicated()]
 
     rows = []
@@ -255,15 +259,19 @@ def explode_meetings(df: pd.DataFrame, col: str = "schedule") -> pd.DataFrame:
         for wd in ("mon", "tue", "wed", "thu", "fri", "sat", "sun"):
             flag = r.get(f"{col}_{wd}")
             # flag may be a scalar or a single-element Series; coerce to bool
-            if bool(flag):
-                rows.append({
-                    "orig_index": idx,
-                    "weekday": wd,
-                    "time_start": r.get(f"{col}_time_start"),
-                    "time_end": r.get(f"{col}_time_end"),
-                    "building": r.get(f"{col}_building"),
-                    "seats": r.get("seats_taken_count"),
-                })
+            if pd.notna(flag) and bool(flag):
+                # only add rows where both time_start and building are valid
+                ts = r.get(f"{col}_time_start")
+                bldg = r.get(f"{col}_building")
+                if pd.notna(ts) and pd.notna(bldg):
+                    rows.append({
+                        "orig_index": idx,
+                        "weekday": wd,
+                        "time_start": ts,
+                        "time_end": r.get(f"{col}_time_end"),
+                        "building": bldg,
+                        "seats": r.get("seats_taken_count"),
+                    })
     return pd.DataFrame(rows)
 
 
