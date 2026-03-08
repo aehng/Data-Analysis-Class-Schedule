@@ -1,74 +1,69 @@
-Unique Requirements & Stretch Challenges
-Write software to analyze a set of data. The following 5 things must be done:
+# BYU-Idaho Class Schedule Foot-Traffic Analysis
 
-* Find or create a dataset that interests you.
+This project extracts BYU-Idaho course schedule data from an HTML export, normalizes it into SQLite tables, and analyzes when and where campus is most and least busy.
 
-* Use software to analyze and answer two questions about the data.
-
-* Software analysis should include a filter.
-
-* Software analysis should include a sort.
-
-* Software analysis should include an aggregation.
-
-
-
-
-You can also use this module to explore Machine Learning. You may need to modify some of the requirements if you study machine learning instead.
-
-Stretch Challenges (select one):
-
-* Update your software so it draws a graph showing some of the results.
-
-* Identify a third question from your dataset and write code to answer it.
-
-
-
-
-
-
-
-
-
-
-# Project Title (Update)
-
-Add a description of your project here.
+The analysis focuses on:
+- Total registered students by building
+- Peak campus concurrency (including overlapping class times)
+- Minimum non-zero campus concurrency
+- Heatmap visualizations for total, max-time, and min-time traffic
 
 ## Instructions for Build and Use
 
 Steps to build and/or run the software:
 
-1. First step here
-2.
-3.
+1. Create and activate a virtual environment.
+2. Install dependencies:
+   - `pip install -r requirements.txt`
+3. Import raw HTML course data into `courses.db`:
+   - `python extract_courses.py`
+4. Normalize schedule fields and generate analytics tables in `parsed.db`:
+   - `python normalize_schedule.py`
+5. Render the report:
+   - `quarto render analysis.qmd`
+6. Open `analysis.html` in a browser.
 
 Instructions for using the software:
 
-1. First step here
-2.
-3.
+1. Ensure the source HTML file exists in the project root:
+   - `Course Search - Search Results BYUI _ Public Course Search _ Class Schedule _ BYU-Idaho's Personalized Access.html`
+2. Run the pipeline in order:
+   - `extract_courses.py` -> `normalize_schedule.py` -> `analysis.qmd`
+3. Review generated outputs:
+   - `courses.db` (raw extracted table)
+   - `parsed.db` (`courses` normalized + `meetings` exploded table)
+   - `analysis.html` (final visual report)
 
 ## Development Environment
 
-To recreate the development environment, you need the following software and/or libraries with the specified versions:
+To recreate the development environment, you need the following software and/or libraries:
 
-* First thing here
-*
-*
+- Python 3.13 (project has been run with Python 3.13)
+- SQLite (via Python standard library `sqlite3`)
+- Quarto CLI
+- `beautifulsoup4`
+- `pandas`
+- `folium`
+- `ipykernel`
+- `lets-plot`
+- `quarto` (Python package used in environment)
+
+Install Python packages with:
+
+- `pip install -r requirements.txt`
 
 ## Useful Websites to Learn More
 
 I found these websites useful in developing this software:
 
-* [Website Title](Link)
-*
-*
+- https://bytescout.com/blog/plotting-geographical-heatmaps-using-python-folium-library.html
+
+- https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf
 
 ## Future Work
 
 The following items I plan to fix, improve, and/or add to this project in the future:
 
-* [ ] First thing here
-* [ ]
-* [ ]
+- [ ] Add trend charts (bar/line) in addition to folium heatmaps.
+- [ ] Add automated validation tests for parser outputs and time-overlap logic.
+- [ ] Allow time selection so you can see how traffic changes throughout the day.
