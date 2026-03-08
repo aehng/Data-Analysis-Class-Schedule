@@ -34,7 +34,7 @@ The expected minimum amount of time each Sprint for each category is as follows:
 |03/06/2026|17:35     |IM      |HEAT map and data processing                |165          |
 |03/06/2026|21:00     |IM      |Map display                                 |40           |
 |03/07/2026|14:35     |IM      |Max display                                 |120          |
-|03/07/2026|18:00     |IM      |Min display                                 |150          |
+|03/07/2026|18:00     |IM      |Min display                                 |160          |
 |03/07/2026|20:30     |TP      |Work on team project                        |120          |
 
 _Note: Add more rows as needed._
@@ -43,7 +43,7 @@ _Note: Add more rows as needed._
 
 |Categroy                       |Total Time (Hours:Minutes)|
 |-------------------------------|:------------------------:|
-|IM - Individual Module         |7:55                      |
+|IM - Individual Module         |8:05                      |
 |TP - Team Project              |2:30                      |
 |MTG - Class Meetings           |4:00                      |
 |**TOTAL**                      |14:25                     |
